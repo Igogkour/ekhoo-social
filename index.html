@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EKHOO v.9.0.0 FINAL</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-[#05070A] text-[#F0F6FC] font-sans h-screen flex flex-col overflow-hidden">
+
+    <div id="auth-screen" class="fixed inset-0 z-[500] flex items-center justify-center bg-[#05070A]">
+        <div class="w-full max-w-sm p-10 text-center">
+            <h1 class="text-7xl font-mono font-bold text-[#00FF7F] tracking-tighter mb-10">EKHOO</h1>
+            <input type="text" id="login-input" class="w-full bg-[#0B0E14] text-white p-5 border border-[#1E252E] focus:border-[#00FF7F] font-mono mb-4 outline-none" placeholder="IDENT ID">
+            <button onclick="Core.attemptLogin()" class="w-full bg-[#00FF7F] text-[#05070A] font-extrabold py-5 uppercase text-xs">Login</button>
+        </div>
+    </div>
+
+    <div id="app-workspace" class="hidden flex-1 flex h-full">
+        <aside class="w-20 md:w-64 bg-[#0B0E14] border-r border-[#1E252E] flex flex-col">
+            <div class="p-8 border-b border-[#1E252E]/30 hidden md:block">
+                <span class="text-2xl font-mono font-extrabold text-[#00FF7F]">EKHOO</span>
+            </div>
+            <nav class="flex-1 py-6" id="main-nav"></nav>
+            <div class="p-6 border-t border-[#1E252E] bg-[#080A0E]">
+                <div class="flex items-center gap-3 mb-2">
+                    <div id="status-dot" class="w-2 h-2 rounded-full bg-[#00FF7F]"></div>
+                    <span id="last-seen" class="text-[9px] font-bold text-[#00FF7F] uppercase tracking-widest">Online</span>
+                </div>
+                <div id="sidebar-username" class="font-mono text-[10px] text-[#8B949E] uppercase">Operator</div>
+            </div>
+        </aside>
+
+        <main class="flex-1 flex flex-col min-w-0 bg-[#05070A]">
+            <header class="h-16 border-b border-[#1E252E] flex items-center justify-between px-8 bg-[#0B0E14]/80 backdrop-blur-md">
+                <span id="view-title" class="text-[10px] font-bold tracking-[0.5em] text-[#8B949E] uppercase">SYSTEM</span>
+                <div id="clock-display" class="text-[11px] font-mono text-[#00FF7F]">00:00:00</div>
+            </header>
+            
+            <div id="content-area" class="flex-1 overflow-y-auto custom-scroll p-6 md:p-12">
+                <div id="view-container" class="max-w-4xl mx-auto pb-32"></div>
+            </div>
+        </main>
+    </div>
+
+    <div id="reply-modal" class="fixed inset-0 z-[600] bg-black/90 hidden flex items-center justify-center p-6">
+        <div class="bg-[#0B0E14] border border-[#1E252E] w-full max-w-xl p-8">
+            <textarea id="reply-input" class="w-full bg-[#05070A] text-white p-6 border border-[#1E252E] mb-6 outline-none" rows="5"></textarea>
+            <button onclick="Core.submitReply()" class="w-full bg-[#00FF7F] text-[#05070A] font-bold py-4 uppercase text-xs">Send Reply</button>
+            <button onclick="Core.closeReply()" class="w-full text-[#8B949E] mt-2 text-[10px] uppercase">Cancel</button>
+        </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

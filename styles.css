@@ -1,0 +1,54 @@
+:root {
+    --accent: #00FF7F;
+    --bg-dark: #05070A;
+    --bg-panel: #0B0E14;
+    --border: #1E252E;
+}
+
+body { font-family: 'Plus Jakarta Sans', sans-serif; letter-spacing: -0.01em; scroll-behavior: smooth; }
+.font-mono { font-family: 'JetBrains Mono', monospace; }
+
+/* Custom Scroll */
+.custom-scroll::-webkit-scrollbar { width: 4px; }
+.custom-scroll::-webkit-scrollbar-track { background: transparent; }
+.custom-scroll::-webkit-scrollbar-thumb { background: var(--border); }
+.custom-scroll::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+/* Эффекты */
+.shadow-glow { box-shadow: 0 0 30px rgba(0, 255, 127, 0.15); }
+.fade-in { animation: fadeIn 0.5s ease-out forwards; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Чат и Профиль */
+.chat-bubble { max-width: 80%; padding: 1rem; border: 1px solid var(--border); position: relative; }
+.chat-me { background: rgba(0, 255, 127, 0.05); border-left: 3px solid var(--accent); align-self: flex-end; }
+.chat-them { background: #0D1117; align-self: flex-start; }
+
+.profile-header {
+    background: linear-gradient(to bottom, #0B0E14, #05070A);
+    border: 1px solid var(--border);
+}
+
+.avatar-container {
+    width: 140px; height: 140px;
+    background: #000;
+    border: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.avatar-container:hover { border-color: var(--accent); box-shadow: 0 0 20px rgba(0, 255, 127, 0.1); }
+.avatar-container img { width: 100%; height: 100%; object-fit: cover; }
+
+.btn-nav { position: relative; overflow: hidden; }
+.btn-nav::after {
+    content: ''; position: absolute; left: 0; top: 0; height: 100%; width: 0;
+    background: rgba(0, 255, 127, 0.1); transition: width 0.3s ease;
+}
+.btn-nav:hover::after { width: 100%; }
+
+@keyframes modalIn {
+    from { opacity: 0; transform: scale(0.9) translateY(20px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.animate-modal { animation: modalIn 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
