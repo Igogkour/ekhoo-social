@@ -1,8 +1,11 @@
 /**
  * EKHOO OS // CORE TERMINAL 
- * VERSION: 9.2.0 [EXPANDED SIDEBAR BUILD]
- * FOCUS: Large Navigation, Profile Routing, Birthday Protocol.
+ * VERSION: 9.3.0 [SOCKET.IO SYNC BUILD]
+ * FOCUS: Real-time Communication, Global Waves, Live Echoes.
  */
+
+// Инициализация соединения с сервером Railway
+const socket = io(); 
 
 const Core = {
     state: {
@@ -25,12 +28,48 @@ const Core = {
 
     init() {
         console.log(">> SYSTEM: INITIALIZING EXPANDED MONOLITH UI...");
+        
+        // --- SOCKET LISTENERS ---
+        // Получаем все посты при подключении
+        socket.on('init_posts', (posts) => {
+            this.state.posts = posts;
+            this.save();
+            this.refreshCurrentView();
+        });
+
+        // Слушаем появление новой волны
+        socket.on('broadcast_wave', (post) => {
+            this.state.posts.unshift(post);
+            this.save();
+            this.refreshCurrentView();
+        });
+
+        // Слушаем обновление поста (лайки или ответы)
+        socket.on('update_post', (updatedPost) => {
+            const index = this.state.posts.findIndex(p => p.id === updatedPost.id);
+            if (index !== -1) {
+                this.state.posts[index] = updatedPost;
+                this.save();
+                this.refreshCurrentView();
+            }
+        });
+        // ------------------------
+
         this.checkSession();
         this.renderNav();
         setInterval(() => {
             const el = document.getElementById('clock-display');
             if(el) el.innerText = new Date().toLocaleTimeString();
         }, 1000);
+    },
+
+    // Вспомогательная функция для обновления текущего экрана при получении данных
+    refreshCurrentView() {
+        if (this.state.viewingProfile) {
+            this.renderProfile(this.state.viewingProfile);
+        } else {
+            this.renderView(this.state.currentView);
+        }
     },
 
     save() {
@@ -49,6 +88,10 @@ const Core = {
             
             const nameEl = document.getElementById('sidebar-username');
             if(nameEl) nameEl.innerText = this.state.user.name;
+            
+            // Регистрируем имя пользователя на сервере для списка онлайн
+            socket.emit('register_user', this.state.user.name);
+            
             this.renderView('feed');
         }
     },
@@ -62,10 +105,8 @@ const Core = {
         location.reload();
     },
 
-    // --- ОБНОВЛЕННАЯ НАВИГАЦИЯ (Увеличенные таб-бары) ---
     renderNav() {
         const nav = document.getElementById('main-nav');
-        // Увеличено: py-5 (отступы), border-l-4 (толщина линии), text-[11px] (размер шрифта)
         nav.innerHTML = CONFIG.menu.map(item => `
             <button onclick="Core.renderView('${item.id}')" 
                 class="w-full flex items-center gap-5 px-8 py-5 border-l-4 transition-all duration-300 ${this.state.currentView === item.id && !this.state.viewingProfile ? 'border-[#00FF7F] text-[#00FF7F] bg-[#00FF7F]/5 shadow-[inset_10px_0_20px_-10px_rgba(0,255,127,0.1)]' : 'border-transparent text-[#8B949E] hover:text-white hover:bg-white/5'}">
@@ -94,7 +135,6 @@ const Core = {
         lucide.createIcons();
     },
 
-    // --- ГЛАВНАЯ ЛЕНТА (WAVES) ---
     renderFeed() {
         document.getElementById('view-container').innerHTML = `
             <div class="space-y-6 fade-in max-w-3xl mx-auto">
@@ -139,20 +179,20 @@ const Core = {
     post() {
         const txt = document.getElementById('wave-input').value;
         if (!txt && !this.state.tempImage) return;
+
         const newPost = {
-            id: Date.now(),
             author: this.state.user.name,
             authorBio: this.state.user.bio,
             text: txt,
             image: this.state.tempImage,
-            time: new Date().toLocaleString(this.state.lang === 'ru' ? 'ru-RU' : 'en-US', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' }),
-            echoes: [],
-            replies: []
+            time: new Date().toLocaleString(this.state.lang === 'ru' ? 'ru-RU' : 'en-US', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' })
         };
-        this.state.posts.unshift(newPost);
+
+        // Отправляем на сервер через сокеты
+        socket.emit('new_wave', newPost);
+
+        document.getElementById('wave-input').value = '';
         this.clearImg();
-        this.save();
-        this.renderFeed();
     },
 
     genPost(p) {
@@ -198,16 +238,14 @@ const Core = {
         `;
     },
 
-    // --- РОУТИНГ ПРОФИЛЕЙ ---
     viewUserProfile(username) {
         this.state.viewingProfile = username;
         this.renderProfile(username);
-        this.renderNav(); // Обновляем навигацию, чтобы снять активный статус с кнопок
+        this.renderNav(); 
         const titleEl = document.getElementById('view-title');
         if(titleEl) titleEl.innerText = `OPERATOR // ${username.toUpperCase()}`;
     },
 
-    // --- ПРОФИЛЬ С BIRTHDAY PROTOCOL ---
     renderProfile(targetUser = null) {
         const isMyProfile = !targetUser || targetUser === this.state.user.name;
         let displayUser = isMyProfile ? this.state.user : { name: targetUser, bio: "External Operator", avatar: null, birthDate: "" };
@@ -219,7 +257,6 @@ const Core = {
 
         const myPosts = this.state.posts.filter(p => p.author === displayUser.name);
 
-        // Логика проверки дня рождения
         let isBirthday = false;
         if (displayUser.birthDate) {
             const today = new Date();
@@ -322,13 +359,13 @@ const Core = {
 
     deletePost(id) {
         if(confirm("Confirm system destruction?")) {
+            // В данной версии удаление остается локальным, либо можно добавить socket.emit('delete_post', id)
             this.state.posts = this.state.posts.filter(p => p.id !== id);
             this.save();
             this.state.viewingProfile ? this.renderProfile(this.state.viewingProfile) : this.renderProfile();
         }
     },
 
-    // --- ОСТАЛЬНЫЕ МОДУЛИ (Новости, ДМ, Настройки) ---
     renderNews() {
         document.getElementById('view-container').innerHTML = `
             <div class="space-y-6 max-w-3xl mx-auto">
@@ -454,14 +491,8 @@ const Core = {
     },
 
     toggleEcho(id) {
-        const p = this.state.posts.find(x => x.id === id);
-        if(!p.echoes) p.echoes = [];
-        const idx = p.echoes.indexOf(this.state.user.name);
-        idx === -1 ? p.echoes.push(this.state.user.name) : p.echoes.splice(idx, 1);
-        this.save();
-        if(this.state.viewingProfile) this.renderProfile(this.state.viewingProfile);
-        else if(this.state.currentView === 'profile') this.renderProfile();
-        else this.renderView('feed');
+        // Отправляем сигнал на сервер
+        socket.emit('toggle_echo', { postId: id, user: this.state.user.name });
     },
 
     openReply(id) { 
@@ -476,17 +507,18 @@ const Core = {
     submitReply() {
         const txt = document.getElementById('reply-input').value;
         if(!txt) return;
-        const p = this.state.posts.find(x => x.id === this.state.activeReplyId);
-        if(!p.replies) p.replies = [];
-        p.replies.push({ author: this.state.user.name, text: txt });
-        this.save();
+        
+        const replyData = {
+            author: this.state.user.name,
+            text: txt
+        };
+
+        // Отправляем ответ на сервер
+        socket.emit('send_reply', { postId: this.state.activeReplyId, reply: replyData });
+
         this.closeReply();
-        if(this.state.viewingProfile) this.renderProfile(this.state.viewingProfile);
-        else this.renderView('feed');
         document.getElementById('reply-input').value = '';
     }
 };
 
-
 window.onload = () => Core.init();
-
