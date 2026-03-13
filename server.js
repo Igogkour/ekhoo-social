@@ -54,4 +54,7 @@ io.on('connection', (socket) => {
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`EKHOO ONLINE ON PORT ${PORT}`));
+
+server.listen(PORT, '0.0.0.0', () => {
+    console.log(`>> SYSTEM: EKHOO CORE RUNNING ON PORT ${PORT}`);
+});
