@@ -1,16 +1,3 @@
-// Добавь это в самое начало файла app.js
-const socket = io(); 
-
-// Добавь это в метод init() внутри объекта Core
-socket.on('init_posts', (posts) => {
-    this.state.posts = posts;
-    this.renderView(this.state.currentView);
-});
-
-socket.on('broadcast_wave', (post) => {
-    this.state.posts.unshift(post);
-    if(this.state.currentView === 'feed') this.renderFeed();
-});
 /**
  * EKHOO OS // CORE TERMINAL 
  * VERSION: 9.2.0 [EXPANDED SIDEBAR BUILD]
@@ -502,3 +489,4 @@ const Core = {
 
 
 window.onload = () => Core.init();
+
